@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>For Sara</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ff8fb3'/%3E%3Cstop offset='100%25' stop-color='%23d63070'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M16 28.5C16 28.5 3 19.3 3 10.6 3 5.4 7 2 11.2 2c2.6 0 4.5 1.6 4.8 4 0.3-2.4 2.2-4 4.8-4C25 2 29 5.4 29 10.6 29 19.3 16 28.5 16 28.5Z' fill='url(%23g)'/%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&family=Amiri:ital@1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pink:       #ff5f93;
+      --pink-light: #ffb3cc;
+      --pink-dark:  #d63070;
+      --glass:      rgba(255,255,255,0.5);
+      --shadow:     0 4px 18px rgba(180,30,100,0.10);
+    }
+
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: #1a0010;
+      color: #3a0020;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ===== CANVAS ===== */
+    #bgCanvas {
+      position: fixed; top:0; left:0;
+      width:100%; height:100%;
+      pointer-events:none; z-index:0;
+    }
+
+    /* ===== LOADING SCREEN ===== */
+    #loadingScreen {
+      position: fixed; inset:0; z-index:9999;
+      background: linear-gradient(160deg,#1a0028,#0d0008);
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:20px;
+      transition: opacity 0.8s ease;
+    }
+    #loadingScreen.fade-out { opacity:0; pointer-events:none; }
+    .loading-heart {
+      width:70px; height:70px;
+      animation: heartbeat 1.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 20px #ff5f93);
+    }
+    .loading-bar-wrap {
+      width:180px; height:5px;
+      background:rgba(255,255,255,0.15);
+      border-radius:10px; overflow:hidden;
+    }
+    .loading-bar {
+      height:100%;
+      background:linear-gradient(90deg,var(--pink),var(--pink-dark));
+      border-radius:10px;
+      animation: loadBar 2.2s ease forwards;
+    }
+    @keyframes loadBar { from{width:0} to{width:100%} }
+    .loading-text { color:rgba(255,255,255,0.5); font-size:0.85rem; letter-spacing:2px; }
+
+    /* ===== CLICK SPARKS ===== */
+    .click-spark {
+      position: fixed;
+      pointer-events: none;
+      font-size: 20px;
+      z-index: 9999;
+      animation: sparkAnim 0.85s ease forwards;
+    }
+    @keyframes sparkAnim {
+      0%   { opacity:1; transform: scale(0.4) translateY(0); }
+      60%  { opacity:1; transform: scale(1.3) translateY(-28px); }
+      100% { opacity:0; transform: scale(0.7) translateY(-55px); }
+    }
+
+    /* ===== PETAL ===== */
+    .petal {
+      position: fixed; top:-30px;
+      font-size: 18px; pointer-events:none; z-index:9998;
+      animation: petalFall linear forwards;
+    }
+    @keyframes petalFall {
+      0%   { transform:translateY(0) rotate(0deg); opacity:1; }
+      100% { transform:translateY(110vh) rotate(720deg); opacity:0; }
+    }
+
+    /* ===== LOGIN ===== */
+    #loginPage {
+      position:relative; z-index:10; height:100vh;
+      display:flex; flex-direction:column;
+      justify-content:center; align-items:center; gap:28px;
+    }
+    #loginPage h2 {
+      font-size:2rem; font-weight:700; color:#fff;
+      text-shadow:0 2px 18px rgba(255,95,147,0.7); letter-spacing:2px;
+    }
+    #heartBtn {
+      background:none; border:none; cursor:pointer;
+      width:80px; height:80px; padding:0;
+      display:flex; align-items:center; justify-content:center;
+      animation: heartbeat 1.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 18px #ff5f93);
+    }
+    #loginPage p { color:rgba(255,255,255,0.65); font-size:0.95rem; }
+
+    @keyframes heartbeat {
+      0%,100%{ transform:scale(1); }
+      14%    { transform:scale(1.18); }
+      28%    { transform:scale(1); }
+      42%    { transform:scale(1.12); }
+      56%    { transform:scale(1); }
+    }
+
+    /* ===== SITE ===== */
+    #site {
+      position:relative; z-index:10; min-height:100vh;
+      background: transparent;
+    }
+
+    /* ===== THEME TOGGLE ===== */
+    #themeToggle {
+      position:fixed; top:14px; left:14px; z-index:100;
+      background:var(--glass); backdrop-filter:blur(14px);
+      border:1.5px solid rgba(255,255,255,0.7); border-radius:50%;
+      width:46px; height:46px; font-size:20px; cursor:pointer;
+      box-shadow:var(--shadow); transition:background 0.2s;
+    }
+    #themeToggle:hover { background:rgba(255,255,255,0.8); }
+
+    body.dark .page  { background:rgba(30,0,30,0.6); border-color:rgba(255,95,147,0.25); color:#f0d0e0; }
+    body.dark .page h2 { color:#ff80b0; }
+    body.dark .page p, body.dark .page label { color:#e0b0c8; }
+    body.dark .quiz-options label { background:rgba(60,0,40,0.5); border-color:rgba(255,95,147,0.3); color:#e0b0c8; }
+    body.dark .track  { background:rgba(60,0,40,0.5); border-color:rgba(255,95,147,0.3); }
+    body.dark .track-name { color:#f0d0e0; }
+    body.dark textarea { background:rgba(60,0,40,0.5); color:#f0d0e0; }
+
+    /* ===== NOW PLAYING ===== */
+    #nowPlaying {
+      position:fixed; bottom:20px; right:14px; z-index:100;
+      background:var(--glass); backdrop-filter:blur(14px);
+      border:1.5px solid rgba(255,255,255,0.7);
+      border-radius:30px; padding:8px 16px;
+      font-size:0.78rem; font-weight:600; color:var(--pink-dark);
+      box-shadow:var(--shadow);
+      display:none; align-items:center; gap:8px;
+      max-width:200px;
+    }
+    #nowPlaying.active { display:flex; }
+    .np-dot {
+      width:8px; height:8px; border-radius:50%;
+      background:var(--pink);
+      animation: npPulse 1s ease-in-out infinite;
+      flex-shrink:0;
+    }
+    @keyframes npPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:0.6} }
+    body.dark #nowPlaying { color:#ff80b0; background:rgba(30,0,30,0.7); }
+
+    /* ===== PAGES ===== */
+    .page {
+      width:92%; max-width:560px;
+      margin:30px auto 50px; padding:28px 24px;
+      border-radius:26px; background:var(--glass);
+      backdrop-filter:blur(18px);
+      border:1.5px solid rgba(255,255,255,0.75);
+      box-shadow:var(--shadow);
+      animation:fadeUp 0.45s ease both;
+      transform-style:preserve-3d;
+      transition:transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    @keyframes fadeUp {
+      from{ opacity:0; transform:translateY(22px); }
+      to  { opacity:1; transform:translateY(0); }
+    }
+    .page h2 { font-size:1.45rem; font-weight:700; color:var(--pink-dark); margin-bottom:18px; text-align:center; }
+    .page p, .page label { font-size:1rem; line-height:1.9; color:#4a1030; }
+
+    /* Sara name highlight */
+    .sara-name {
+      background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      filter: drop-shadow(0 0 8px rgba(255,95,147,0.4));
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display:inline-block; padding:13px 28px; border:none; border-radius:50px;
+      background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+      color:#fff; font-family:'Vazirmatn',sans-serif;
+      font-size:1rem; font-weight:600; cursor:pointer;
+      box-shadow:0 4px 18px rgba(255,95,147,0.35);
+      transition:transform 0.15s, box-shadow 0.15s; margin-top:10px;
+    }
+    .btn:hover  { transform:translateY(-2px); box-shadow:0 7px 22px rgba(255,95,147,0.45); }
+    .btn:active { transform:translateY(0); }
+
+    .btn-tg {
+      display:inline-block; padding:13px 28px; border:none; border-radius:50px;
+      background:linear-gradient(135deg,#29b6f6,#0288d1);
+      color:#fff; font-family:'Vazirmatn',sans-serif;
+      font-size:1rem; font-weight:600; text-decoration:none;
+      box-shadow:0 4px 18px rgba(2,136,209,0.4);
+      transition:transform 0.15s, box-shadow 0.15s; margin-top:10px;
+      -webkit-text-fill-color:#fff;
+    }
+    .btn-tg:hover { transform:translateY(-2px); box-shadow:0 7px 22px rgba(2,136,209,0.5); }
+    .btn-tg:active { transform:translateY(0); }
+
+    /* ===== HOME BACK BUTTON (bottom of each section) ===== */
+    .btn-home {
+      background:rgba(150,110,130,0.18); color:var(--pink-dark);
+      box-shadow:none; border:1.5px solid rgba(255,95,147,0.3);
+    }
+    .btn-home:hover { background:rgba(150,110,130,0.28); box-shadow:none; }
+    body.dark .btn-home { color:#ff9dc4; background:rgba(255,95,147,0.15); border-color:rgba(255,157,196,0.35); }
+
+    /* ===== HOME CARD-FLIP NAV ===== */
+    /* ===== SITE PROGRESS ===== */
+    .site-progress-wrap { margin-top:20px; text-align:center; }
+    .site-progress {
+      width:100%; height:8px; border-radius:10px;
+      background:rgba(255,95,147,0.15); overflow:hidden;
+      box-shadow:inset 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .site-progress-bar {
+      height:100%; width:0%; border-radius:10px;
+      background:linear-gradient(90deg, var(--pink), #ffd166);
+      transition:width 0.6s cubic-bezier(.4,.2,.2,1);
+    }
+    .site-progress-label {
+      margin-top:8px; font-size:0.8rem; font-weight:600; color:var(--pink-dark); opacity:0.85;
+    }
+    body.dark .site-progress-label { color:#ff9dc4; }
+
+    .flip-cards-wrap { margin-top:26px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+    .card-row-top { display:flex; justify-content:center; gap:16px; }
+    .flip-card { width:96px; height:126px; perspective:900px; cursor:pointer; }
+    .flip-card-inner {
+      position:relative; width:100%; height:100%;
+      transition:transform 0.6s cubic-bezier(.4,.2,.2,1);
+      transform-style:preserve-3d;
+    }
+    .flip-card.flipped .flip-card-inner { transform:rotateY(180deg); }
+    @keyframes cardDoubleFlip {
+      0%   { transform:rotateY(0deg); }
+      100% { transform:rotateY(900deg); }
+    }
+    .flip-card.spinning .flip-card-inner {
+      animation: cardDoubleFlip 1.15s cubic-bezier(.45,.15,.25,1) forwards;
+    }
+    .flip-card-face {
+      position:absolute; inset:0; border-radius:16px;
+      display:flex; align-items:center; justify-content:center;
+      backface-visibility:hidden;
+      box-shadow:0 6px 18px rgba(180,30,100,0.28);
+      border:2px solid rgba(255,255,255,0.55);
+      text-align:center; padding:6px;
+    }
+    .flip-card-back {
+      background:linear-gradient(135deg,#3a0f28,#1c0414);
+      color:#ffd166; font-size:2.1rem; font-weight:800;
+      font-family:'Georgia','Amiri',serif;
+      text-shadow:0 0 14px rgba(255,209,102,0.55);
+    }
+    .flip-card-front {
+      transform:rotateY(180deg);
+      color:#fff; font-weight:800; font-size:0.92rem; line-height:1.5;
+    }
+    .card-music .flip-card-front { background:linear-gradient(135deg,#ff5f93,#d63070); }
+    .card-quiz  .flip-card-front { background:linear-gradient(135deg,#ffd166,#e6a23c); color:#4a1030; }
+    .card-final .flip-card-front { background:linear-gradient(135deg,#a01848,#4a0020); }
+
+    /* ===== CONFIRM MODAL ===== */
+    .modal-overlay {
+      position:fixed; inset:0; z-index:9999;
+      background:rgba(20,0,15,0.55);
+      display:flex; align-items:center; justify-content:center; padding:20px;
+    }
+    .modal-overlay.hidden { display:none; }
+    .modal-box {
+      background:var(--glass); backdrop-filter:blur(20px);
+      border:1.5px solid rgba(255,255,255,0.7);
+      border-radius:22px; padding:28px 24px; max-width:320px; text-align:center;
+      box-shadow:var(--shadow);
+    }
+    .modal-box p { margin-bottom:20px; font-weight:700; color:var(--pink-dark); line-height:1.7; }
+    .modal-actions { display:flex; gap:12px; justify-content:center; }
+    .modal-yes { margin-top:0; }
+    .modal-no  { margin-top:0; background:rgba(120,120,120,0.2); color:#555; box-shadow:none; }
+    .modal-no:hover { box-shadow:none; background:rgba(120,120,120,0.32); }
+    body.dark .modal-box { background:rgba(30,0,30,0.92); }
+    body.dark .modal-box p { color:#ff9dc4; }
+    body.dark .modal-no { color:#e0d0d8; background:rgba(255,255,255,0.1); }
+
+    /* ===== QUIZ THANK-YOU ===== */
+    .thank-box { position:relative; overflow:visible; padding-top:70px; }
+    .thank-hearts { position:absolute; inset:0; bottom:auto; height:90px; overflow:visible; pointer-events:none; }
+    .thank-heart {
+      position:absolute; bottom:10px; width:22px; height:22px;
+      animation: thankHeartRise 1.6s ease-out forwards;
+    }
+    @keyframes thankHeartRise {
+      0%   { transform:translateY(0) scale(0.5) rotate(0deg); opacity:0; }
+      15%  { opacity:1; }
+      100% { transform:translateY(-90px) scale(1.1) rotate(20deg); opacity:0; }
+    }
+
+    /* ===== QUIZ ===== */
+    /* progress bar */
+    .quiz-progress-wrap {
+      width:100%; height:6px; background:rgba(255,95,147,0.15);
+      border-radius:10px; margin-bottom:22px; overflow:hidden;
+    }
+    .quiz-progress-bar {
+      height:100%; width:0%;
+      background:linear-gradient(90deg,var(--pink),var(--pink-dark));
+      border-radius:10px; transition:width 0.4s ease;
+    }
+    .quiz-progress-label {
+      text-align:center; font-size:0.8rem; color:#a06080; margin-bottom:12px;
+    }
+
+    .quiz-q { margin-bottom:22px; position:relative; }
+    .quiz-q p { font-weight:600; margin-bottom:10px; color:var(--pink-dark); }
+    .quiz-check {
+      position:absolute; top:0; left:0;
+      font-size:1.1rem; opacity:0;
+      transition:opacity 0.3s, transform 0.3s;
+      transform:scale(0.5);
+    }
+    .quiz-q.answered .quiz-check { opacity:1; transform:scale(1); }
+
+    .quiz-options { display:flex; flex-direction:column; gap:9px; }
+    .quiz-options label {
+      display:flex; align-items:center; gap:10px;
+      padding:11px 16px; border-radius:14px;
+      border:1.5px solid rgba(255,95,147,0.2);
+      background:rgba(255,255,255,0.5); cursor:pointer;
+      transition:background 0.15s, border-color 0.15s, transform 0.1s;
+      font-size:0.95rem;
+    }
+    .quiz-options label:hover { background:rgba(255,95,147,0.1); border-color:var(--pink); transform:scale(1.01); }
+    .quiz-options input[type="radio"] { accent-color:var(--pink); width:17px; height:17px; }
+    .quiz-options input[type="radio"]:checked + span { color:var(--pink-dark); font-weight:600; }
+    hr.divider { border:none; border-top:1px solid rgba(255,95,147,0.2); margin:6px 0 18px; }
+
+    /* ===== MUSIC ===== */
+    .track {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 16px; border-radius:16px;
+      background:rgba(255,255,255,0.55);
+      border:1.5px solid rgba(255,95,147,0.18);
+      margin-bottom:14px;
+      transition:background 0.15s;
+    }
+    .track:hover { background:rgba(255,255,255,0.8); }
+    .track-icon {
+      width:50px; height:50px; border-radius:50%;
+      background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+      display:flex; align-items:center; justify-content:center;
+      font-size:22px; flex-shrink:0;
+      box-shadow:0 5px 16px rgba(255,95,147,0.4);
+      cursor:pointer; transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      user-select:none;
+      border:2px solid rgba(255,255,255,0.3);
+    }
+    .track-icon:hover { 
+      transform:scale(1.12) translateY(-2px);
+      box-shadow:0 8px 24px rgba(255,95,147,0.6);
+      border-color:rgba(255,255,255,0.6);
+    }
+    .track-icon:active { transform:scale(1.05); }
+    .track-info { flex:1; min-width:0; }
+    .track-name { font-weight:600; font-size:0.95rem; color:#3a0020; }
+    .track-artist { font-size:0.82rem; color:#a06080; margin-top:2px; }
+    .track-progress-wrap {
+      width:100%; height:5px; background:rgba(255,95,147,0.12);
+      border-radius:12px; margin-top:8px; overflow:hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);
+      cursor:pointer; position:relative;
+      direction:ltr;
+    }
+    .track-progress-wrap:hover { height:7px; }
+    .track-time {
+      font-size:0.72rem; color:#a06080; margin-top:5px;
+      direction:ltr; text-align:right;
+    }
+    body.dark .track-time { color:#c090a8; }
+    .track-progress-bar {
+      height:100%; width:0%;
+      background:linear-gradient(90deg,var(--pink),var(--pink-dark));
+      border-radius:12px; transition:width 0.3s ease;
+      box-shadow:0 0 8px rgba(255,95,147,0.5);
+    }
+    audio { display:none; }
+
+    /* ===== MESSAGE ===== */
+    textarea {
+      width:100%; min-height:120px; border-radius:16px;
+      border:1.5px solid rgba(255,95,147,0.25);
+      background:rgba(255,255,255,0.6);
+      font-family:'Vazirmatn',sans-serif;
+      font-size:1rem; padding:14px; resize:vertical; color:#3a0020;
+      outline:none; transition:border-color 0.2s; margin-top:8px;
+    }
+    textarea:focus { border-color:var(--pink); }
+
+    /* ===== ENVELOPE ===== */
+    #envelopeWrap { text-align:center; padding:30px 0 10px; }
+    #envelopeHint { color:#a06080; font-size:0.9rem; margin-top:14px; }
+
+    .env-scene {
+      display:inline-block; cursor:pointer;
+      animation: floatEnv 3s ease-in-out infinite;
+      filter: drop-shadow(0 8px 24px rgba(255,95,147,0.45));
+      position:relative;
+      perspective: 600px;
+    }
+    .env-scene:hover { filter: drop-shadow(0 12px 32px rgba(255,95,147,0.7)); }
+    @keyframes floatEnv {
+      0%,100%{ transform:translateY(0) rotate(-2deg); }
+      50%    { transform:translateY(-14px) rotate(2deg); }
+    }
+
+    .env-body {
+      width:220px; height:150px;
+      background:linear-gradient(135deg,#ffe0ee,#ffc0d8);
+      border-radius:8px 8px 14px 14px;
+      position:relative; overflow:visible;
+      border:2px solid rgba(255,95,147,0.4);
+      transform-style: preserve-3d;
+    }
+    .env-body::after {
+      content:'';
+      position:absolute; bottom:0; left:0; width:0; height:0;
+      border-left:110px solid transparent;
+      border-right:110px solid transparent;
+      border-bottom:80px solid rgba(255,150,180,0.35);
+      z-index:1;
+    }
+    .env-flap {
+      position:absolute; top:0; left:0; width:0; height:0;
+      border-left:110px solid transparent;
+      border-right:110px solid transparent;
+      border-top:80px solid #ffaac8;
+      transform-origin: top center;
+      transform: rotateX(0deg);
+      transition: transform 0.6s ease;
+      backface-visibility: hidden;
+      z-index:3;
+    }
+    .env-scene.opened .env-flap { transform: rotateX(180deg); }
+
+    /* WAX SEAL */
+    .env-seal {
+      position:absolute;
+      top:61px; left:50%; transform:translateX(-50%);
+      width:38px; height:38px; z-index:4;
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+    .env-seal svg { width:100%; height:100%; }
+    .env-scene.opened .env-seal { transform:translateX(-50%) scale(0); opacity:0; }
+
+    .env-letter {
+      position:absolute; bottom:14px; left:50%;
+      transform:translateX(-50%) translateY(0);
+      width:170px; background:#fff9fb;
+      border-radius:8px; border:1.5px solid rgba(255,95,147,0.25);
+      box-shadow:0 6px 18px rgba(180,30,100,0.2);
+      padding:12px 14px; font-size:0.78rem; color:#a06080;
+      text-align:center;
+      transition: transform 0.6s ease 0.35s, opacity 0.5s ease 0.35s;
+      opacity:0; z-index:2; pointer-events:none;
+    }
+    .env-scene.opened .env-letter {
+      transform:translateX(-50%) translateY(-92px); opacity:1;
+    }
+
+    #letterContent { display:none; animation:fadeUp 0.6s ease both; margin-top:10px; }
+    #letterContent.open { display:block; }
+
+    .letter-seal {
+      text-align:center; margin:20px 0 0;
+      position:relative;
+      display:flex; justify-content:center;
+    }
+    .seal-icon {
+      display:inline-block; position:relative;
+      width:70px; height:70px;
+    }
+    
+    /* Pure SVG-based designed heart - no emoji feel */
+    .heart-seal {
+      width:100%; height:100%;
+      position:relative;
+      background: radial-gradient(circle at 35% 35%, #ff7fa6, #d63070);
+      border-radius:50%;
+      box-shadow: 0 8px 20px rgba(255,95,147,0.6), inset 0 2px 8px rgba(255,255,255,0.3);
+      display:flex; align-items:center; justify-content:center;
+    }
+    
+    .heart-shape {
+      position:relative;
+      width:32px; height:32px;
+    }
+    
+    /* Heart shape using CSS - elegant geometric design */
+    .heart-shape::before {
+      content:'';
+      position:absolute;
+      width:18px; height:28px;
+      background:#fff9fb;
+      border-radius:18px 18px 0 0;
+      top:4px; left:0;
+      box-shadow: 14px 0 0 0 #fff9fb;
+    }
+    
+    .heart-shape::after {
+      content:'';
+      position:absolute;
+      width:0; height:0;
+      border-left:16px solid transparent;
+      border-right:16px solid transparent;
+      border-top:20px solid #fff9fb;
+      bottom:-2px; left:0;
+    }
+    
+    /* Seal ring with text effect */
+    .seal-ring {
+      position:absolute; inset:0;
+      border:2.5px dashed rgba(255,255,255,0.4);
+      border-radius:50%;
+      animation: sealRotate 12s linear infinite;
+    }
+    @keyframes sealRotate { to { transform:rotate(360deg); } }
+
+    /* ===== TOAST ===== */
+    #toast {
+      position:fixed; bottom:28px; left:50%;
+      transform:translateX(-50%) translateY(80px);
+      background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+      color:#fff; padding:13px 26px; border-radius:40px;
+      font-weight:600; font-size:0.95rem;
+      box-shadow:0 6px 22px rgba(255,95,147,0.4);
+      transition:transform 0.35s cubic-bezier(.34,1.56,.64,1);
+      z-index:999; pointer-events:none;
+    }
+    #toast.show { transform:translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<!-- LOADING -->
+<div id="loadingScreen">
+  <div class="loading-heart">
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      <defs><linearGradient id="heroHeartGrad1" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#ff8fb3"/><stop offset="100%" stop-color="#d63070"/>
+      </linearGradient></defs>
+      <path d="M16 28.5C16 28.5 3 19.3 3 10.6 3 5.4 7 2 11.2 2c2.6 0 4.5 1.6 4.8 4 0.3-2.4 2.2-4 4.8-4C25 2 29 5.4 29 10.6 29 19.3 16 28.5 16 28.5Z" fill="url(#heroHeartGrad1)"/>
+      <path d="M9.5 8.5c-2 2-2.6 5-1.3 7.6" stroke="rgba(255,255,255,0.55)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    </svg>
+  </div>
+  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
+  <div class="loading-text">در حال بارگذاری...</div>
+</div>
+
+<div id="toast">❤️</div>
+
+<!-- NOW PLAYING -->
+<div id="nowPlaying">
+  <div class="np-dot"></div>
+  <span id="npText">niaz</span>
+</div>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <h2>❤️dear art of god❤️</h2>
+  <button id="heartBtn" onclick="enterSite()">
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      <defs><linearGradient id="heroHeartGrad2" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#ff8fb3"/><stop offset="100%" stop-color="#d63070"/>
+      </linearGradient></defs>
+      <path d="M16 28.5C16 28.5 3 19.3 3 10.6 3 5.4 7 2 11.2 2c2.6 0 4.5 1.6 4.8 4 0.3-2.4 2.2-4 4.8-4C25 2 29 5.4 29 10.6 29 19.3 16 28.5 16 28.5Z" fill="url(#heroHeartGrad2)"/>
+      <path d="M9.5 8.5c-2 2-2.6 5-1.3 7.6" stroke="rgba(255,255,255,0.55)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    </svg>
+  </button>
+  <p>برای ورود قلب رو لمس کن</p>
+</div>
+
+<!-- SITE -->
+<div id="site" class="hidden">
+
+  <button id="themeToggle" onclick="toggleTheme()" title="تغییر تم">☀️</button>
+
+  <!-- HOME -->
+  <div id="home" class="page">
+    <p>
+      درود <span class="sara-name">سارا</span><br><br>
+      احتمالاً یکم عجیبه که یکی برات سایت بسازه 😅<br>
+      راستش می‌خواستم یه حرفی رو بهت بزنم ولی رو‌در‌رو گفتنش برام سخت بود، برای همین یه راه متفاوت انتخاب کردم.<br><br>
+      امیدوارم دوست داشته باشی و به دلت بشینه
+    </p>
+
+    <div class="site-progress-wrap">
+      <div class="site-progress"><div class="site-progress-bar" id="siteProgressBar"></div></div>
+      <p class="site-progress-label" id="siteProgressLabel">۰ از ۳ بخش دیده شده</p>
+    </div>
+
+    <div class="flip-cards-wrap">
+      <div class="card-row-top">
+        <div class="flip-card card-quiz" id="card2" onclick="flipCard(2,'quiz','quiz')">
+          <div class="flip-card-inner">
+            <div class="flip-card-face flip-card-back">2</div>
+            <div class="flip-card-face flip-card-front">Quiz ✨</div>
+          </div>
+        </div>
+        <div class="flip-card card-music" id="card1" onclick="flipCard(1,'music','music')">
+          <div class="flip-card-inner">
+            <div class="flip-card-face flip-card-back">1</div>
+            <div class="flip-card-face flip-card-front">Music 🎵</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-row-bottom">
+        <div class="flip-card card-final" id="card3" onclick="flipCard(3,'final','final')">
+          <div class="flip-card-inner">
+            <div class="flip-card-face flip-card-back">3</div>
+            <div class="flip-card-face flip-card-front">حرف آخر ❤️</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MUSIC -->
+  <div id="music" class="page hidden">
+    <h2>Music 🎵</h2>
+
+    <div class="track">
+      <div class="track-icon" onclick="togglePlay(0)">
+        <svg id="svg0" viewBox="0 0 24 24" width="22" height="22" fill="white"><polygon points="6,4 20,12 6,20"/></svg>
+      </div>
+      <div class="track-info">
+        <div class="track-name">niaz</div>
+        <div class="track-artist">freidoon foroughi</div>
+        <div class="track-progress-wrap" id="wrap0" onclick="seekTrack(0, event)"><div class="track-progress-bar" id="prog0"></div></div>
+        <div class="track-time" id="time0">0:00 / 0:00</div>
+      </div>
+      <audio id="audio0" src="niaz.mp3"></audio>
+    </div>
+
+    <div class="track">
+      <div class="track-icon" onclick="togglePlay(1)">
+        <svg id="svg1" viewBox="0 0 24 24" width="22" height="22" fill="white"><polygon points="6,4 20,12 6,20"/></svg>
+      </div>
+      <div class="track-info">
+        <div class="track-name">Let Me Love You Like A Woman</div>
+        <div class="track-artist">Lana Del Rey</div>
+        <div class="track-progress-wrap" id="wrap1" onclick="seekTrack(1, event)"><div class="track-progress-bar" id="prog1"></div></div>
+        <div class="track-time" id="time1">0:00 / 0:00</div>
+      </div>
+      <audio id="audio1" src="lana.mp3"></audio>
+    </div>
+
+    <div class="track">
+      <div class="track-icon" onclick="togglePlay(2)">
+        <svg id="svg2" viewBox="0 0 24 24" width="22" height="22" fill="white"><polygon points="6,4 20,12 6,20"/></svg>
+      </div>
+      <div class="track-info">
+        <div class="track-name">Be Mine Baby</div>
+        <div class="track-artist">The Rutles</div>
+        <div class="track-progress-wrap" id="wrap2" onclick="seekTrack(2, event)"><div class="track-progress-bar" id="prog2"></div></div>
+        <div class="track-time" id="time2">0:00 / 0:00</div>
+      </div>
+      <audio id="audio2" src="bemine.mp3"></audio>
+    </div>
+
+    <div class="track">
+      <div class="track-icon" onclick="togglePlay(3)">
+        <svg id="svg3" viewBox="0 0 24 24" width="22" height="22" fill="white"><polygon points="6,4 20,12 6,20"/></svg>
+      </div>
+      <div class="track-info">
+        <div class="track-name">Can't Take My Eyes Off You</div>
+        <div class="track-artist">Frankie Valli</div>
+        <div class="track-progress-wrap" id="wrap3" onclick="seekTrack(3, event)"><div class="track-progress-bar" id="prog3"></div></div>
+        <div class="track-time" id="time3">0:00 / 0:00</div>
+      </div>
+      <audio id="audio3" src="eyes.m4a"></audio>
+    </div>
+
+    <button class="btn btn-home" onclick="show('home','')">بازگشت به منوی هوم</button>
+  </div>
+
+  <!-- BACKGROUND MUSIC (auto-plays, pauses whenever a track above is played) -->
+  <audio id="bgMusic" src="bgmusic.mp3" loop></audio>
+
+  <!-- QUIZ -->
+  <div id="quiz" class="page hidden">
+    <h2>Quiz ✨</h2>
+    <div class="quiz-progress-label" id="quizLabel">۰ از ۸ جواب داده شده</div>
+    <div class="quiz-progress-wrap">
+      <div class="quiz-progress-bar" id="quizBar"></div>
+    </div>
+
+    <div class="quiz-q" id="qq1">
+      <span class="quiz-check">✅</span>
+      <p>۱. روز ایده‌آلت دوست داری کجا بری؟</p>
+      <div class="quiz-options">
+        <label><input type="radio" name="q1" value="کافه" onchange="onAnswer(1)"><span>☕ کافه</span></label>
+        <label><input type="radio" name="q1" value="فیلم و خونه" onchange="onAnswer(1)"><span>🎬 فیلم و خونه</span></label>
+        <label><input type="radio" name="q1" value="بیرون" onchange="onAnswer(1)"><span>🚶 بیرون</span></label>
+        <label><input type="radio" name="q1" value="هرچی پیش بیاد" onchange="onAnswer(1)"><span>🤷‍♀️ هرچی پیش بیاد</span></label>
+      </div>
+    </div><hr class="divider">
+
+    <div class="quiz-q" id="qq2">
+      <span class="quiz-check">✅</span>
+      <p>۲. صبح یا شب؟</p>
+      <div class="quiz-options">
+        <label><input type="radio" name="q2" value="صبح" onchange="onAnswer(2)"><span>🌞 صبح</span></label>
+        <label><input type="radio" name="q2" value="شب" onchange="onAnswer(2)"><span>🌙 شب</span></label>
+        <label><input type="radio" name="q2" value="فرقی نداره" onchange="onAnswer(2)"><span>😌 فرقی نداره</span></label>
+      </div>
+    </div><hr class="divider">
+
+    <div class="quiz-q" id="qq3">
+      <span class="quiz-check">✅</span>
+      <p>۳. دوست داری سفر کجا بری؟</p>
+      <div class="quiz-options">
+        <label><input type="radio" name="q3" value="ساحل" onchange="onAnswer(3)"><span>🏖 ساحل</span></label>
+        <label><input type="radio" name="q3" value="کوه" onchange="onAnswer(3)"><span>🏔 کوه</span></label>
+        <label><input type="radio" name="q3" value="شهر مدرن" onchange="onAnswer(3)"><span>🏙 شهر مدرن</span></label>
+        <label><input type="radio" name="q3" value="طبیعت آروم" onchange="onAnswer(3)"><span>🌲 طبیعت آروم</span></label>
+      </div>
+    </div><hr class="divider">
+
+    <div class="quiz-q" id="qq4">
+      <span class="quiz-check">✅</span>
+      <p>۴. وایب مورد علاقت؟</p>
+      <div class="quiz-options">
+        <label><input type="radio" name="q4" value="آروم" onchange="onAnswer(4)"><span>😌 آروم</span></label>
+        <label><input type="radio" name="q4" value="شلوغ و خنده‌دار" onchange="onAnswer(4)"><span>😂 شلوغ و خنده‌دار</span></label>
+        <label><input type="radio" name="q4" value="صمیمی و عمیق" onchange="onAnswer(4)"><span>🫶 صمیمی و عمیق</span></label>
+        <label><input type="radio" name="q4" value="هیجان‌انگیز" onchange="onAnswer(4)"><span>🎉 هیجان‌انگیز</span></label>
+      </div>
+    </div><hr class="divider">
+
+    <div class="quiz-q" id="qq5">
+      <span class="quiz-check">✅</span>
+      <p>۵. از کدوم آهنگ بیشتر خوشت اومد؟</p>
+      <div class="quiz-options">
+        <label><input type="radio" name="q5" value="niaz" onchange="onAnswer(5)"><span>🌌 niaz</span></label>
+        <label><input type="radio" name="q5" value="Let Me Love You Like A Woman" onchange="onAnswer(5)"><span>🎵 Let Me Love You Like A Woman</span></label>
+        <label><input type="radio" name="q5" value="Be Mine Baby" onchange="onAnswer(5)"><span>💘 Be Mine Baby</span></label>
+        <label><input type="radio" name="q5" value="Can't Take My Eyes Off You" onchange="onAnswer(5)"><span>👀 Can't Take My Eyes Off You</span></label>
+      </div>
+    </div><hr class="divider">
+
+    <div class="quiz-q" id="qq6">
+      <span class="quiz-check">✅</span>
+      <p>۶. کدومشو بیشتر دوست داری؟😋</p>
+      <div class="quiz-options">
+        <label><input type="radio" name="q6" value="چیپس و پفک" onchange="onAnswer(6)"><span>چیپس و پفک 🧀🥔</span></label>
+        <label><input type="radio" name="q6" value="بستنی" onchange="onAnswer(6)"><span>بستنی 🍦</span></label>
+        <label><input type="radio" name="q6" value="کیک" onchange="onAnswer(6)"><span>کیک 🧁</span></label>
+        <label><input type="radio" name="q6" value="بیسکوییت/کوکی" onchange="onAnswer(6)"><span>بیسکوییت/کوکی 🍪</span></label>
+      </div>
+    </div><hr class="divider">
+
+    <div class="quiz-q" id="qq7">
+      <span class="quiz-check">✅</span>
+      <p>۷. چه سبک فیلمی دوست داری؟</p>
+      <div class="quiz-options">
+        <label><input type="radio" name="q7" value="کمدی" onchange="onAnswer(7)"><span>😂 کمدی</span></label>
+        <label><input type="radio" name="q7" value="عاشقانه" onchange="onAnswer(7)"><span>💘 عاشقانه</span></label>
+        <label><input type="radio" name="q7" value="هیجانی" onchange="onAnswer(7)"><span>😱 هیجانی</span></label>
+        <label><input type="radio" name="q7" value="درگیرکننده" onchange="onAnswer(7)"><span>🧠 درگیرکننده</span></label>
+      </div>
+    </div><hr class="divider">
+
+    <div class="quiz-q" id="qq8">
+      <span class="quiz-check">✅</span>
+      <p>۸. جذاب‌ترین چیز برات چیه؟</p>
+      <div class="quiz-options">
+        <label><input type="radio" name="q8" value="شخصیت" onchange="onAnswer(8)"><span>😄 شخصیت</span></label>
+        <label><input type="radio" name="q8" value="طرز فکر" onchange="onAnswer(8)"><span>🧠 طرز فکر</span></label>
+        <label><input type="radio" name="q8" value="شوخ‌طبعی" onchange="onAnswer(8)"><span>😂 شوخ‌طبعی</span></label>
+        <label><input type="radio" name="q8" value="وایب طرف" onchange="onAnswer(8)"><span>✨ وایب طرف</span></label>
+      </div>
+    </div>
+
+    <button class="btn" onclick="confirmSubmitQuiz()">ارسال جواب‌ها</button>
+    <button class="btn btn-home" onclick="show('home','')">بازگشت به منوی هوم</button>
+  </div>
+
+  <!-- CONFIRM MODAL -->
+  <div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <p>مطمئنی مایلی جواب‌ها رو بفرستی؟</p>
+      <div class="modal-actions">
+        <button class="btn modal-no" onclick="confirmNo()">خیر</button>
+        <button class="btn modal-yes" onclick="confirmYes()">بله</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ THANK-YOU OVERLAY -->
+  <div id="thankYouOverlay" class="modal-overlay hidden">
+    <div class="modal-box thank-box">
+      <div class="thank-hearts" id="thankHearts"></div>
+      <p style="font-size:1.1rem; margin-bottom:0;">ممنون بابت جواب‌هات ❤️</p>
+    </div>
+  </div>
+
+  <!-- FINAL -->
+  <div id="final" class="page hidden">
+    <div id="envelopeWrap">
+      <div class="env-scene" id="envScene" onclick="openEnvelope()">
+        <div class="env-body">
+          <div class="env-flap"></div>
+          <!-- WAX SEAL روی پاکت -->
+          <div class="env-seal">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="48" fill="#a01848"/>
+              <circle cx="50" cy="50" r="44" fill="#d63070"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#ff8ab5" stroke-width="1.2" stroke-dasharray="4 3"/>
+              <circle cx="50" cy="50" r="34" fill="none" stroke="#ff8ab5" stroke-width="0.8" stroke-dasharray="2.5 2"/>
+              <path d="M50,72 C50,72 24,55 24,36 C24,25 31,17 40,17 C45,17 48,21 50,25 C52,21 55,17 60,17 C69,17 76,25 76,36 C76,55 50,72 50,72 Z" fill="#ffe0ee"/>
+              <path d="M33,25 C29,30 28,37 31,43" stroke="rgba(255,255,255,0.4)" stroke-width="3" stroke-linecap="round" fill="none"/>
+            </svg>
+          </div>
+          <div class="env-letter">سارا عزیزم...</div>
+        </div>
+      </div>
+      <p id="envelopeHint">برای باز کردن لمس کن ❤️</p>
+    </div>
+    <div id="letterContent">
+      <span class="pulse">❤️</span>
+      <p>
+        شاید نتوانم دقیق بگویم چگونه، اما یک جایی میان تمام روزهای معمولی، تو برای من تبدیل به خاص‌ترین آدم شدی، بعضی آدم‌ها را نمی‌شود توضیح داد، نمی‌شود با کلمات توصیفشان کرد... فقط می‌شود از ته دل دوستشان داشت. تو برای من دقیقاً از همان آدم‌هایی کسی که بودنش، حتی در ساده‌ترین لحظه‌ها، دنیا را برایم قشنگ‌تر می‌کند.<br><br>
+        <span class="sara-name">سارا</span> از روز اولی که تو آموزشگاه دیدمت خیلی توجم رو جلب کردی، حسی که موقع دیدنت داشتم رو هیچ زمانی از زندگیم نداشتم.<br>
+        انگار از قلبم هی داشت بهم برق وارد میشد.<br><br>
+        اوایل ترم دوم،همه چی داشت خوب پیش میرفت مخصوصا اون شب توی کافه خیلی شب ساده‌ای بود ولی برای من خیلی خاص بود و هیچوقت یادم نمیره،روز آخر ترم دوممون که رفتیم بستنی بخوریم میخواستم بهت بگم که واقعا چه فرشته‌ای هستی ولی یه حسی بهم میگفت نکن سامی اون از تو بدش اون از تو تنفر داره و طی ترم هم این احساس رو داشتم،بعدشم موقع برگشت سمت مترو این بیش از حد توی مغزم داشت اذیتم میکرد، برای همین خواستم بدون خداحافظی اساسی برای همیشه برم و کل اون دوره دو ماه زندگیم رو فراموش کنم، یکم با خودم کلنجار رفتم و فکر کردم فکر کردم فکر کردم،به این نتیجه رسیدم نباید توی مسیر رسیدن به رویایی دست بکشی که بعدا خودتو سرزنش کنی پس خواستم به خودم یه فرصت دیگه بدم.<br>
+        بعدش رسیدیم به ترم سوم اون‌موقع به این نتیجه رسیدم که اون بدت اومدنه تبدیل به کهیر زدن یا احساس خشم شده‌<br>
+        بعدش وقتی دیدم این اتفاقات داره میوفته فکر کردم مشکل از منه و سعی کردم تا جایی که میشه روی خودم کار کنم،وضعیت جسمیم رو بهتر کردم و وزن کم کردم،سعی کردم مکالمه کردنم رو بهتر کنم که مطمئنم توی این مورد موفق نبودم،و بیشتر سعی کردم یه سامی باشم که پیش دوستام هستم نه سامی که توی کلاس زبان داره برای خودش یه شخصیت دیگه میسازه،وقتی الان به این موضوع فکر میکنم کهیر میزنم مثل وقتی که تو راجب من فکر میکنی.<br><br>
+        ولی هیچی بهتر نشد،این سوالی که چرا سارا از من بدش میاد چرا وقتی تو مسیر مترو‌ایم منو نمیبینه؟این سوال برام تبدیل به یه کابوس شد،همش فکر میکردم بهش و هرچی به ذهنم میزد رو سعی کردم بهتر کنم ولی بازم هیچی،یه مکالمه ساده و یا حتی اینکه بهم تیکه نندازی جوابمو بدی برام تبدیل به آرزو شد تو واقعا آدم رو دیوونه میکنی دختر و البته بیا قبول کنیم ارتباط گرفتن باهات سخته😭،واقعا نمیدونم چه فکر راجب من میکنی ولی من واقعا آدم بد و هیزی نیستم اینجوری بزرگ نشدم، هرکاریم کردم که به نظرت بد اومده از اعماق وجود و قلبم عذر میخوام.<br><br>
+        ولی دوست دارم حداقل وقتی به الان نگاه میکنم،به این نتیجه نرسم که برای آرزوم تلاش نکردم.<br><br>
+        این نامه و محتویات داخلش کوچیک ترین چیزیه که میتونستم بهت کادو بدم و ببخشید متن طولانی شد😭❤️.<br><br>
+        و حرف آخرم اینه: تو قشنگ ترین رویایی هستی که چه تو خواب و چه موقع بیداری دیدم و به قول فرانکی والی: نمیتونم چشم ازت بردارم❤️❤️<br><br>
+        و ازت یک درخواست دارم خواهشا: ای دوشیزه‌ای که احساسم رو به تمامی زیبایی‌های دنیا با زیبایی خود از بین بردی و مرا دیوانه‌ی خود کردی، نمی‌دانم راجب من چه فکرهایی می‌کنی، ولی ازت می‌خواهم تنها یک فرصت به این دل‌باخته‌ی شکست‌خورده بدهی.<br>
+        نمی‌دانم داستان من مثل برژراک و رکسان خواهد شد یا دارسی و الیزابت، اما می‌دانم داستان من با این دو یک اشتراک خواهد داشت، من تا ابد مانند برژراک و دارسی، رکسانم و الیزابتم را دوست خواهم داشت.<br><br>
+        از اینجا به بعد نویسنده شمایی:)
+      </p>
+      <div class="letter-seal">
+        <div class="seal-icon">
+          <div class="heart-seal">
+            <div class="seal-ring"></div>
+            <div class="heart-shape"></div>
+          </div>
+        </div>
+      </div>
+      <br>
+      <a class="btn-tg" href="https://t.me/sami_goodman" target="_blank">@sami_goodman</a>
+      <br><br>
+      <p style="font-size:0.9rem;color:#a06080">مرسی که وقت گذاشتی و سایت رو دیدی<br>برات آرزوی بهترین هارو میکنم ❤️</p>
+      <button class="btn btn-home" onclick="show('home','')">بازگشت به منوی هوم</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== LOADING =====
+window.addEventListener('load', ()=>{
+  setTimeout(()=>{
+    const ls = document.getElementById('loadingScreen');
+    ls.classList.add('fade-out');
+    setTimeout(()=>ls.style.display='none', 800);
+  }, 1500);
+});
+// fallback - if load event doesn't fire
+setTimeout(()=>{
+  const ls = document.getElementById('loadingScreen');
+  if(ls && ls.style.display !== 'none'){
+    ls.classList.add('fade-out');
+    setTimeout(()=>ls.style.display='none', 800);
+  }
+}, 3000);
+
+// ===== CANVAS =====
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+function randomHeart(){
+  return { x:Math.random()*W, y:H+20, size:10+Math.random()*18, speed:0.6+Math.random()*1.2,
+    opacity:0.5+Math.random()*0.5, sway:Math.random()*2-1,
+    swaySpeed:0.01+Math.random()*0.02, swayAngle:Math.random()*Math.PI*2, type:'heart' };
+}
+function randomStar(){
+  return { x:Math.random()*W, y:Math.random()*H, size:1+Math.random()*2.5,
+    opacity:0.3+Math.random()*0.7, twinkleSpeed:0.02+Math.random()*0.04,
+    twinkleAngle:Math.random()*Math.PI*2, type:'star' };
+}
+for(let i=0;i<50;i++) particles.push(randomStar());
+setInterval(()=>{ if(particles.filter(p=>p.type==='heart').length<12) particles.push(randomHeart()); },600);
+
+function drawHeart(x,y,s,op){
+  ctx.save(); ctx.globalAlpha=op;
+  ctx.fillStyle='#ff5f93'; ctx.shadowColor='#ff5f93'; ctx.shadowBlur=10;
+  ctx.beginPath();
+  ctx.moveTo(x,y+s*0.3);
+  ctx.bezierCurveTo(x,y,x-s*0.5,y,x-s*0.5,y+s*0.3);
+  ctx.bezierCurveTo(x-s*0.5,y+s*0.65,x,y+s*0.9,x,y+s);
+  ctx.bezierCurveTo(x,y+s*0.9,x+s*0.5,y+s*0.65,x+s*0.5,y+s*0.3);
+  ctx.bezierCurveTo(x+s*0.5,y,x,y,x,y+s*0.3);
+  ctx.fill(); ctx.restore();
+}
+
+let isDark = true;
+document.body.classList.add('dark');
+canvas.style.opacity = '1';
+
+function animate(){
+  ctx.clearRect(0,0,W,H);
+  if(isDark){
+    const grad = ctx.createRadialGradient(W*0.5,H*0.3,0,W*0.5,H*0.5,H);
+    grad.addColorStop(0,'#3a0028'); grad.addColorStop(1,'#0d0008');
+    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+  } else {
+    const grad = ctx.createRadialGradient(W*0.5,H*0.25,0,W*0.5,H*0.5,H);
+    grad.addColorStop(0,'#fff8f0'); grad.addColorStop(0.6,'#ffe4d5'); grad.addColorStop(1,'#f8cdd8');
+    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+  }
+  particles.forEach((p,i)=>{
+    if(p.type==='star'){
+      p.twinkleAngle+=p.twinkleSpeed;
+      const op=p.opacity*(0.5+0.5*Math.sin(p.twinkleAngle));
+      ctx.save(); ctx.globalAlpha=op;
+      if(isDark){
+        ctx.fillStyle='#fff'; ctx.shadowColor='#ffaacc';
+      } else {
+        ctx.fillStyle='#ffcf5c'; ctx.shadowColor='#ffb703';
+      }
+      ctx.shadowBlur=isDark?4:6;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill(); ctx.restore();
+    } else {
+      p.swayAngle+=p.swaySpeed; p.x+=Math.sin(p.swayAngle)*p.sway;
+      p.y-=p.speed; p.opacity-=0.003;
+      drawHeart(p.x-p.size/2,p.y-p.size/2,p.size,Math.max(0,p.opacity));
+      if(p.y<-30||p.opacity<=0) particles.splice(i,1);
+    }
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+
+// ===== CLICK SPARKS (custom-designed hearts, stars & a flower, alternating) =====
+let clickCount = 0;
+const sparkPalettes = [
+  ['#ff5f93','#ff9ac4'], // pink
+  ['#e63e73','#ff7fa8'], // deep rose
+  ['#ffd166','#ffb066']  // warm gold
+];
+function sparkHeartSVG(c1,c2,gid){
+  return `<svg width="26" height="26" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/>
+    </linearGradient></defs>
+    <path d="M16 28.5C16 28.5 3 19.3 3 10.6 3 5.4 7 2 11.2 2c2.6 0 4.5 1.6 4.8 4 0.3-2.4 2.2-4 4.8-4C25 2 29 5.4 29 10.6 29 19.3 16 28.5 16 28.5Z" fill="url(#${gid})"/>
+    <path d="M9.5 8.5c-2 2-2.6 5-1.3 7.6" stroke="rgba(255,255,255,0.55)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+  </svg>`;
+}
+function sparkStarSVG(c1,c2,gid){
+  return `<svg width="24" height="24" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/>
+    </linearGradient></defs>
+    <path d="M16 1.5 19.9 12 30.5 12.8 22.3 19.7 25 30 16 24 7 30 9.7 19.7 1.5 12.8 12.1 12Z" fill="url(#${gid})"/>
+    <circle cx="16" cy="16" r="3.2" fill="rgba(255,255,255,0.55)"/>
+  </svg>`;
+}
+document.addEventListener('click', function(e){
+  if(e.target.closest('#heartBtn')||e.target.closest('.btn')||
+     e.target.closest('#themeToggle')||e.target.closest('.track-icon')||
+     e.target.closest('#envScene')||e.target.closest('#quiz')||
+     e.target.closest('.flip-card')||e.target.closest('.modal-overlay')) return;
+  clickCount++;
+  const kind = clickCount % 3; // 0: heart, 1: star, 2: flower
+  const [c1,c2] = sparkPalettes[Math.floor(Math.random()*sparkPalettes.length)];
+  const gid = 'spg'+clickCount+Math.floor(Math.random()*1000);
+  const el = document.createElement('div');
+  el.className='click-spark';
+  if(kind===0) el.innerHTML = sparkHeartSVG(c1,c2,gid);
+  else if(kind===1) el.innerHTML = sparkStarSVG(c1,c2,gid);
+  else { el.textContent = '🌸'; el.style.fontSize='22px'; }
+  el.style.left = e.clientX+'px';
+  el.style.top  = e.clientY+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 900);
+});
+
+// ===== PETALS =====
+function spawnPetals(){
+  const emojis=['🌸','🌺','🌷','💮'];
+  for(let i=0;i<30;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='petal';
+      el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+      el.style.left=Math.random()*100+'vw';
+      el.style.fontSize=(14+Math.random()*14)+'px';
+      el.style.animationDuration=(3+Math.random()*3)+'s';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),6000);
+    },i*80);
+  }
+}
+
+// ===== THEME =====
+function toggleTheme(){
+  isDark=!isDark;
+  document.body.classList.toggle('dark',isDark);
+  document.getElementById('themeToggle').textContent=isDark?'☀️':'🌙';
+  canvas.style.opacity='1';
+}
+
+// ===== ENTER SITE =====
+function enterSite(){
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('site').classList.remove('hidden');
+  canvas.style.opacity='1';
+  spawnPetals();
+  const bg = document.getElementById('bgMusic');
+  if(bg){ bg.volume = 0.5; bg.play().catch(()=>{}); }
+}
+
+// ===== HOME CARD-FLIP NAV =====
+// ===== SITE PROGRESS =====
+const faDigits=['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+function toFa(n){ return String(n).split('').map(d=>faDigits[+d]||d).join(''); }
+function updateProgress(){
+  const bar=document.getElementById('siteProgressBar');
+  const label=document.getElementById('siteProgressLabel');
+  if(!bar||!label) return;
+  const count=visitedCards.size;
+  bar.style.width=(count/3*100)+'%';
+  label.textContent=toFa(count)+' از '+toFa(3)+' بخش دیده شده'+(count===3?' 🎉':'');
+}
+
+const visitedCards = new Set();
+function flipCard(num, id, theme){
+  const card = document.getElementById('card'+num);
+  if(!visitedCards.has(num)){
+    visitedCards.add(num);
+    card.classList.add('spinning');
+    updateProgress();
+    setTimeout(()=>{ show(id, theme); }, 1200);
+  } else {
+    show(id, theme);
+  }
+}
+
+// ===== QUIZ SUBMIT CONFIRM =====
+function confirmSubmitQuiz(){
+  document.getElementById('confirmModal').classList.remove('hidden');
+}
+function confirmYes(){
+  document.getElementById('confirmModal').classList.add('hidden');
+  submitQuiz();
+  showThankYou();
+}
+function confirmNo(){
+  document.getElementById('confirmModal').classList.add('hidden');
+}
+
+// ===== QUIZ THANK-YOU OVERLAY =====
+function showThankYou(){
+  const overlay=document.getElementById('thankYouOverlay');
+  const wrap=document.getElementById('thankHearts');
+  wrap.innerHTML='';
+  const colors=[['#ff5f93','#ff9ac4'],['#e63e73','#ff7fa8'],['#ffd166','#ffb066']];
+  for(let i=0;i<10;i++){
+    const [c1,c2]=colors[Math.floor(Math.random()*colors.length)];
+    const gid='ty'+i+Math.floor(Math.random()*1000);
+    const el=document.createElement('div');
+    el.className='thank-heart';
+    el.style.left=(10+Math.random()*80)+'%';
+    el.style.animationDelay=(Math.random()*0.4)+'s';
+    el.innerHTML=`<svg width="100%" height="100%" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/>
+      </linearGradient></defs>
+      <path d="M16 28.5C16 28.5 3 19.3 3 10.6 3 5.4 7 2 11.2 2c2.6 0 4.5 1.6 4.8 4 0.3-2.4 2.2-4 4.8-4C25 2 29 5.4 29 10.6 29 19.3 16 28.5 16 28.5Z" fill="url(#${gid})"/>
+    </svg>`;
+    wrap.appendChild(el);
+  }
+  overlay.classList.remove('hidden');
+  setTimeout(()=>{ overlay.classList.add('hidden'); }, 2400);
+}
+
+// ===== SHOW PAGE =====
+const themeMap={home:'',music:'theme-music',quiz:'theme-quiz',final:'theme-final'};
+function show(id,theme){
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  const site=document.getElementById('site');
+  Object.values(themeMap).forEach(c=>{ if(c) site.classList.remove(c); });
+  if(themeMap[id]) site.classList.add(themeMap[id]);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ===== 3D TILT =====
+document.addEventListener('mousemove',function(e){
+  const card=document.querySelector('.page:not(.hidden)');
+  if(!card) return;
+  const r=card.getBoundingClientRect();
+  const dx=(e.clientX-(r.left+r.width/2))/(r.width/2);
+  const dy=(e.clientY-(r.top+r.height/2))/(r.height/2);
+  card.style.transform=`perspective(800px) rotateY(${dx*4}deg) rotateX(${-dy*4}deg)`;
+});
+document.addEventListener('mouseleave',function(){
+  const card=document.querySelector('.page:not(.hidden)');
+  if(card) card.style.transform='';
+});
+
+// ===== ENVELOPE =====
+let envelopeOpened=false;
+function openEnvelope(){
+  if(envelopeOpened) return;
+  envelopeOpened=true;
+  const scene=document.getElementById('envScene');
+  scene.classList.add('opened');
+  document.getElementById('envelopeHint').style.opacity='0';
+  setTimeout(()=>{
+    scene.style.transition='opacity 0.5s';
+    scene.style.opacity='0';
+    setTimeout(()=>{
+      document.getElementById('envelopeWrap').style.display='none';
+      document.getElementById('letterContent').classList.add('open');
+    },500);
+  },1200);
+}
+
+// ===== MUSIC with progress bar, seeking, time display =====
+let currentAudio=null, currentIndex=-1;
+const trackNames=['niaz','Let Me Love You Like A Woman','Be Mine Baby','Can\'t Take My Eyes'];
+const trackCount=4;
+
+function setIcon(index, isPlaying){
+  const container = document.querySelector(`.track-icon[onclick="togglePlay(${index})"]`);
+  if(!container) return;
+  if(isPlaying){
+    container.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="4" width="4" height="16" fill="white" rx="1"/><rect x="15" y="4" width="4" height="16" fill="white" rx="1"/></svg>`;
+  } else {
+    container.innerHTML = `<svg id="svg${index}" viewBox="0 0 24 24" width="22" height="22" xmlns="http://www.w3.org/2000/svg"><polygon points="6,4 20,12 6,20" fill="white"/></svg>`;
+  }
+}
+
+function formatTime(sec){
+  if(!isFinite(sec) || isNaN(sec)) return '0:00';
+  const m = Math.floor(sec/60);
+  const s = Math.floor(sec%60);
+  return m+':'+(s<10?'0':'')+s;
+}
+
+function updateTimeLabel(index){
+  const audio = document.getElementById('audio'+index);
+  const label = document.getElementById('time'+index);
+  if(!audio || !label) return;
+  label.textContent = formatTime(audio.currentTime)+' / '+formatTime(audio.duration);
+}
+
+// Wire up native audio events so the icon/progress/time always reflect real playback state,
+// regardless of how playback started, stopped, or was interrupted.
+for(let i=0;i<trackCount;i++){
+  const audio = document.getElementById('audio'+i);
+  if(!audio) continue;
+  audio.addEventListener('loadedmetadata', ()=>updateTimeLabel(i));
+  audio.addEventListener('timeupdate', ()=>{
+    if(audio.duration) document.getElementById('prog'+i).style.width=(audio.currentTime/audio.duration*100)+'%';
+    updateTimeLabel(i);
+  });
+  audio.addEventListener('play', ()=>{
+    setIcon(i, true);
+    currentAudio=audio; currentIndex=i;
+    document.getElementById('npText').textContent=trackNames[i];
+    document.getElementById('nowPlaying').classList.add('active');
+    const bg = document.getElementById('bgMusic');
+    if(bg && !bg.paused) bg.pause();
+  });
+  audio.addEventListener('pause', ()=>{
+    setIcon(i, false);
+    if(currentIndex===i){
+      document.getElementById('nowPlaying').classList.remove('active');
+      currentAudio=null; currentIndex=-1;
+      const bg = document.getElementById('bgMusic');
+      if(bg && bg.paused) bg.play().catch(()=>{});
+    }
+  });
+  audio.addEventListener('ended', ()=>{
+    setIcon(i, false);
+    document.getElementById('prog'+i).style.width='0%';
+    document.getElementById('nowPlaying').classList.remove('active');
+    currentAudio=null; currentIndex=-1;
+    const bg = document.getElementById('bgMusic');
+    if(bg && bg.paused) bg.play().catch(()=>{});
+  });
+}
+
+function togglePlay(index){
+  const audio = document.getElementById('audio'+index);
+  if(currentAudio && currentAudio !== audio){
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+  if(audio.paused){
+    audio.play().catch(()=>{});
+  } else {
+    audio.pause();
+  }
+}
+
+function seekTrack(index, e){
+  const audio = document.getElementById('audio'+index);
+  if(!audio || !audio.duration) return;
+  const wrap = document.getElementById('wrap'+index);
+  const rect = wrap.getBoundingClientRect();
+  let percent = (e.clientX - rect.left) / rect.width;
+  percent = Math.min(Math.max(percent, 0), 1);
+  audio.currentTime = percent * audio.duration;
+  if(audio.duration) document.getElementById('prog'+index).style.width=(percent*100)+'%';
+}
+
+// ===== QUIZ progress =====
+let answeredCount=0;
+function onAnswer(qNum){
+  const q=document.getElementById('qq'+qNum);
+  if(!q.classList.contains('answered')){
+    q.classList.add('answered');
+    answeredCount++;
+    const pct=Math.round(answeredCount/8*100);
+    document.getElementById('quizBar').style.width=pct+'%';
+    document.getElementById('quizLabel').textContent=
+      answeredCount<8?`${answeredCount} از ۸ جواب داده شده`:'همه سوالا جواب داده شد ✅';
+  }
+}
+
+let storage=[];
+function submitQuiz(){
+  const names=['q1','q2','q3','q4','q5','q6','q7','q8'];
+  let answers={};
+  names.forEach(n=>{ const el=document.querySelector(`input[name="${n}"]:checked`); answers[n]=el?el.value:'—'; });
+  storage.push({type:'quiz',answers});
+  showToast('❤️ جواب‌ها ارسال شد');
+
+  fetch('https://formsubmit.co/ajax/samigoodman5584@gmail.com', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      _subject: 'جواب‌های کوییز سایت سارا ❤️',
+      'سوال ۱ - روز ایده‌آل': answers.q1,
+      'سوال ۲ - صبح یا شب': answers.q2,
+      'سوال ۳ - سفر': answers.q3,
+      'سوال ۴ - وایب مورد علاقه': answers.q4,
+      'سوال ۵ - آهنگ مورد علاقه': answers.q5,
+      'سوال ۶ - خوراکی مورد علاقه': answers.q6,
+      'سوال ۷ - سبک فیلم': answers.q7,
+      'سوال ۸ - جذاب‌ترین چیز': answers.q8
+    })
+  }).catch(()=>{ /* fails silently, answers already stored locally too */ });
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>
